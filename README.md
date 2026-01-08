@@ -1,273 +1,180 @@
-# headless-claude-subscription
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                 │
+│   HEADLESS CLAUDE SUBSCRIPTION                                  │
+│                                                                 │
+│   Run Claude Code on your VPS using your subscription.          │
+│   Not the API.                                                  │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-> Run Claude Code 24/7 on your VPS using your subscription — not the API.
+## The Problem
 
-Your Claude subscription ($20/mo) gives you **5-10x more usage** than equivalent API spend. This repo lets you run Claude Code autonomously on a VPS, triggered by webhooks, files, GitHub issues, or your own custom triggers.
+```
+$ claude-code --api-key
+  → Complex feature implementation
+  → 45 minutes later...
+  → Invoice: $47.82
 
-## Why This Exists
+$ claude-code --api-key
+  → "Fix this bug"
+  → 30 seconds later...
+  → Invoice: $10.00
+```
 
-| Approach | Monthly Cost | Usage |
-|----------|-------------|-------|
-| Claude API | $200-500+ | Limited by tokens |
-| **Claude Subscription** | $20 | Much higher limits |
+API pricing adds up fast. Developers report $20-100/day for moderate usage.
+Heavy Opus users hit $1000+ days.
 
-Claude Code CLI uses your subscription credits, not API tokens. Running it headlessly on a VPS means it works while you sleep.
+## The Solution
 
-## What It Does
+```
+$ claude-code --subscription
+  → Same Claude Code
+  → Same capabilities
+  → Fixed monthly cost
+  → No token anxiety
+```
 
-1. Runs Claude Code on your VPS as a background service
-2. Watches for tasks via triggers (file, webhook, GitHub issues, or custom)
-3. Claude implements the task, commits, and pushes
-4. Notifies you of the result
+**Claude Max ($200/mo) gives you what would cost $1000+ in API.**
+
+Users report getting "thousands of dollars worth of API usage" monthly.
+
+## Cost Comparison
+
+```
+┌────────────────────┬──────────┬─────────────────────────┐
+│ Method             │ Cost/mo  │ Usage                   │
+├────────────────────┼──────────┼─────────────────────────┤
+│ API (Sonnet)       │ $100-200 │ Average dev usage       │
+│ API (Opus heavy)   │ $500+    │ Complex projects        │
+│ API (Opus intense) │ $1000+   │ Architecture work       │
+├────────────────────┼──────────┼─────────────────────────┤
+│ Max Subscription   │ $200     │ 20x Pro limits          │
+│ Max Subscription   │ $100     │ 5x Pro limits           │
+│ Pro Subscription   │ $20      │ Base limits             │
+└────────────────────┴──────────┴─────────────────────────┘
+```
+
+This repo runs Claude Code headlessly on a VPS, using your subscription.
+It works while you sleep.
 
 ## Quick Start
 
-### Prerequisites
-
-- A VPS (AWS, DigitalOcean, Hetzner, or [Hostinger's Claude template](https://www.hostinger.com/vps/claude-code))
-- Node.js 18+
-- Git
-- Claude Pro/Team subscription
-
-### Setup (< 30 minutes)
-
 ```bash
-# 1. Clone this repo to your VPS
+# On your VPS
 git clone https://github.com/tolibear/headless-claude-subscription.git
 cd headless-claude-subscription
 
-# 2. Run the setup script
+# Run setup (detects Claude Code, guides auth, installs deps)
 ./setup.sh
 
-# 3. The script will:
-#    - Check for Claude Code CLI (install if needed)
-#    - Guide you through authentication
-#    - Install dependencies
-#    - Optionally create a systemd service
+# Start with a trigger
+npm start triggers/file-trigger.ts      # Watch tasks.json
+npm start triggers/webhook-trigger.ts   # HTTP endpoint
+npm start triggers/github-issues-trigger.ts  # Auto-fix labeled issues
 ```
 
-### Authentication
+## How It Works
 
-Claude Code requires a one-time browser authentication:
-
-```bash
-# On your VPS, run:
-claude
-
-# It will display a URL. Open that URL in your browser,
-# complete the auth, and paste the code back into the terminal.
 ```
-
-### Run It
-
-```bash
-# Using the file trigger (simplest)
-npm start triggers/file-trigger.ts
-
-# Using the webhook trigger
-npm start triggers/webhook-trigger.ts
-
-# Using the GitHub issues trigger
-npm start triggers/github-issues-trigger.ts
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   Trigger   │────▶│   Runner    │────▶│ Claude Code │
+│             │     │             │     │             │
+│ - file      │     │ - spawns    │     │ - implements│
+│ - webhook   │     │ - streams   │     │ - commits   │
+│ - github    │     │ - handles   │     │ - pushes    │
+│ - custom    │     │   results   │     │             │
+└─────────────┘     └─────────────┘     └─────────────┘
+                           │
+                           ▼
+                    Your subscription
+                    (not API tokens)
 ```
 
 ## Triggers
 
-### File Trigger
-
-The simplest trigger. Watches a `tasks.json` file for tasks.
-
-```json
-// tasks.json
-[
-  { "id": "task-1", "prompt": "Fix the login bug in auth.ts", "status": "pending" },
-  { "id": "task-2", "prompt": "Add dark mode support", "status": "pending" }
-]
-```
+### File Trigger (simplest)
 
 ```bash
-npm start triggers/file-trigger.ts
+# tasks.json
+[
+  {"id": "1", "prompt": "Fix the login bug", "status": "pending"},
+  {"id": "2", "prompt": "Add dark mode", "status": "pending"}
+]
+
+$ npm start triggers/file-trigger.ts
 ```
 
 ### Webhook Trigger
 
-Exposes an HTTP endpoint for external systems to submit tasks.
-
 ```bash
-# Start the webhook server
-WEBHOOK_PORT=3000 WEBHOOK_SECRET=mysecret npm start triggers/webhook-trigger.ts
+$ WEBHOOK_PORT=3000 npm start triggers/webhook-trigger.ts
 
-# Submit a task
-curl -X POST http://localhost:3000/task \
-  -H "Content-Type: application/json" \
-  -H "x-webhook-secret: mysecret" \
-  -d '{"id": "task-1", "prompt": "Add a logout button to the header"}'
-
-# Check status
-curl http://localhost:3000/status
+# Submit tasks via HTTP
+$ curl -X POST localhost:3000/task \
+    -H "Content-Type: application/json" \
+    -d '{"prompt": "Add logout button"}'
 ```
 
 ### GitHub Issues Trigger
 
-Automatically processes GitHub issues with a specific label.
+```bash
+$ export GITHUB_TOKEN=ghp_xxx
+$ export GITHUB_REPO=you/repo
+$ export GITHUB_LABEL=claude-ready
+
+$ npm start triggers/github-issues-trigger.ts
+
+# Label an issue "claude-ready" → Claude fixes it → Comments results
+```
+
+## Run as Service
 
 ```bash
-# Set your GitHub token and repo
-export GITHUB_TOKEN=ghp_xxxxxxxxxxxx
-export GITHUB_REPO=tolibear/your-repo
-export GITHUB_LABEL=claude-ready
-
-npm start triggers/github-issues-trigger.ts
-```
-
-When an issue has the `claude-ready` label:
-1. Claude reads the issue and implements a fix
-2. Commits with "Fix #123: description"
-3. Comments on the issue with results
-4. Removes the label
-
-### Custom Triggers
-
-Create your own trigger by implementing the `TriggerAdapter` interface:
-
-```typescript
-// triggers/my-trigger.ts
-import type { TriggerAdapter, Task, TaskResult } from '../src/types.js'
-
-const trigger: TriggerAdapter = {
-  async getNextTask(): Promise<Task | null> {
-    // Return a task or null if none available
-    return {
-      id: 'unique-id',
-      prompt: 'What Claude should do...',
-    }
-  },
-
-  async onTaskComplete(result: TaskResult): Promise<void> {
-    // Handle the completed task
-    console.log(`Task ${result.taskId}: ${result.status}`)
-  },
-}
-
-export default trigger
-```
-
-## Configuration
-
-Create a `.env` file (the setup script does this for you):
-
-```bash
-# Directory containing your project
-PROJECT_DIR=/home/user/my-project
-
-# Claude binary path (auto-detected)
-CLAUDE_PATH=/usr/local/bin/claude
-
-# Task timeout in minutes
-CLAUDE_TIMEOUT_MINUTES=30
-
-# Poll interval in milliseconds
-POLL_INTERVAL_MS=10000
-
-# Webhook settings
-WEBHOOK_PORT=3000
-WEBHOOK_SECRET=your-secret
-
-# GitHub settings
-GITHUB_TOKEN=ghp_xxx
-GITHUB_REPO=owner/repo
-GITHUB_LABEL=claude-ready
-```
-
-## Running as a Service
-
-The setup script can configure systemd for you. Manual setup:
-
-```bash
-# Create service file
-sudo nano /etc/systemd/system/headless-claude.service
-```
-
-```ini
-[Unit]
-Description=Headless Claude
-After=network.target
-
-[Service]
-Type=simple
-User=tolibear
-WorkingDirectory=/home/tolibear/headless-claude-subscription
-ExecStart=/usr/bin/npx tsx src/index.ts triggers/file-trigger.ts
-Restart=on-failure
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-```
-
-```bash
-# Enable and start
-sudo systemctl daemon-reload
+# Setup script offers systemd config, or manually:
 sudo systemctl enable headless-claude
 sudo systemctl start headless-claude
-
-# View logs
 sudo journalctl -u headless-claude -f
 ```
 
-## Safety & Guardrails
+## Config
 
-Claude operates within the guardrails you define in your project's `CLAUDE.md` file. See `examples/CLAUDE.md` for a template.
+```bash
+# .env
+PROJECT_DIR=/home/you/project
+CLAUDE_TIMEOUT_MINUTES=30
+POLL_INTERVAL_MS=10000
+```
 
-Key safety features:
-- **Git is your safety net** — Every change is committed; revert if needed
-- **CLAUDE.md guardrails** — Define what Claude can/cannot do
-- **Timeout protection** — Tasks auto-terminate after 30 minutes (configurable)
-- **Safe environment** — Secrets are not passed to Claude subprocess
+## Safety
+
+- Git is your safety net (every change committed)
+- CLAUDE.md defines guardrails (see examples/)
+- 30min timeout per task (configurable)
+- Secrets not passed to subprocess
 
 ## Use Cases
 
-- **Issue Triage Bot** — Label issues `claude-ready`, let Claude fix them
-- **PR Reviewer** — Trigger on new PRs, get AI code review
-- **Scheduled Maintenance** — Run linting, dependency updates, etc.
-- **Webhook Responder** — React to Stripe webhooks, form submissions
-- **Feature Suggestion Implementer** — Users vote, Claude builds (see [Evolving Site](https://github.com/tolibear/evolving-site))
+```
+→ Issue triage bot      Label issues, Claude fixes them
+→ PR reviewer           Auto-review on new PRs
+→ Scheduled maintenance Linting, deps, cleanup
+→ Webhook responder     React to external events
+→ Feature implementer   Users vote, Claude builds
+```
+
+See [Evolving Site](https://github.com/tolibear/evolving-site) for a full example.
 
 ## Terms of Service
 
-This tool runs Claude Code using your Claude subscription. **You are responsible for ensuring your usage complies with [Anthropic's Terms of Service](https://www.anthropic.com/legal/consumer-terms).**
-
-We recommend:
-- Using human-triggered workflows rather than fully automated systems
-- Reviewing Claude's output before deploying to production
-- Keeping a human in the loop for important decisions
-
-## Troubleshooting
-
-### Claude authentication expires
-Re-run `claude` to re-authenticate. Sessions typically last weeks.
-
-### "Claude not found"
-Ensure Claude Code is installed: `npm install -g @anthropic-ai/claude-code`
-
-### Tasks stuck in progress
-Check logs: `journalctl -u headless-claude -f`
-The task may have timed out. Increase `CLAUDE_TIMEOUT_MINUTES` if needed.
-
-### Git push fails
-Ensure your VPS has SSH keys configured for your Git remote.
-
-## Examples
-
-See [Evolving Site](https://github.com/tolibear/evolving-site) for a full implementation where users submit feature suggestions, vote on them, and Claude implements the winners.
-
-## Contributing
-
-PRs welcome! Especially:
-- New trigger implementations
-- Better error handling
-- Documentation improvements
+Your responsibility to comply with Anthropic's TOS.
+We recommend human-triggered workflows over fully automated.
 
 ## License
 
-MIT — use it however you want.
+MIT
+
+---
+
+Sources: [Anthropic Docs](https://code.claude.com/docs/en/costs), [User Reports](https://userjot.com/blog/claude-code-pricing-200-dollar-plan-worth-it), [Cost Analysis](https://www.aiengineering.report/p/the-hidden-costs-of-claude-code-token)
