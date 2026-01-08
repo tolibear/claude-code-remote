@@ -1,4 +1,4 @@
-# claude-code-remote
+# Trigger remote Claude Code (subscription, not API)
 
 Run Claude Code on a remote server using your subscription (not API).
 
