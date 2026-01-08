@@ -1,26 +1,23 @@
 # remote-ralph
 
-Run Claude Code on a server so it works while you sleep.
+Run Claude Code on a remote server using your subscription (not API).
 
-## What This Does
+## Why
 
-Sets up Claude Code on a VPS as a background service. You give it tasks (via file, webhook, or GitHub issues), it implements them, commits, and pushes. Uses your Claude subscription, not API tokens.
+Your Claude subscription works while your laptop is open. This makes it work while you sleep.
 
-## Prerequisites
+## How It Works
 
-- A VPS (any Linux server)
-- Node.js 18+
-- Claude Pro or Max subscription
+Your local Claude Code helps set up Claude Code on a remote server. Once authenticated, the remote Claude can run tasks autonomously - triggered by cron, webhooks, SSH, or whatever you want.
 
-## Setup
+## Setup (with Local Claude)
 
-### 1. Clone on your VPS
+Have your local Claude Code run these steps on your VPS:
+
+### 1. SSH into your server
 
 ```bash
-ssh you@your-server
-git clone https://github.com/tolibear/remote-ralph.git
-cd remote-ralph
-npm install
+ssh user@your-server
 ```
 
 ### 2. Install Claude Code
@@ -29,75 +26,79 @@ npm install
 npm install -g @anthropic-ai/claude-code
 ```
 
-### 3. Authenticate (the tricky part)
+### 3. Authenticate
 
-Claude Code needs a one-time browser auth. Since your VPS has no browser, you'll do a handoff:
+This is the handoff. Run `claude` on the server:
 
 ```bash
-# On your VPS, run:
 claude
-
-# It will show something like:
-# "To authenticate, visit: https://console.anthropic.com/oauth/..."
-# "Enter the code from the browser:"
 ```
 
-1. Copy that URL
-2. Open it in your local browser
-3. Log in to your Claude account
-4. You'll get a code - copy it
-5. Paste the code back into your VPS terminal
+It outputs an auth URL. Copy it, open in your browser, log in, get a code, paste it back into the server terminal.
 
-Done. The session persists for weeks.
+Session lasts weeks.
 
-### 4. Configure
+### 4. Clone your project
 
 ```bash
-cp .env.example .env
-# Edit .env with your settings
+git clone https://github.com/you/your-project.git
+cd your-project
 ```
 
-### 5. Pick a trigger and run
+### 5. Run Claude
 
 ```bash
-# File-based: watches tasks.json for new tasks
-npm start triggers/file-trigger.ts
-
-# Webhook: HTTP endpoint for external systems
-npm start triggers/webhook-trigger.ts
-
-# GitHub: auto-fixes issues labeled "claude-ready"
-npm start triggers/github-issues-trigger.ts
+claude -p "your task here"
 ```
 
-### 6. Run as a service (optional)
+Or with a CLAUDE.md that defines what it should do:
 
 ```bash
-sudo cp remote-ralph.service /etc/systemd/system/
-sudo systemctl enable remote-ralph
-sudo systemctl start remote-ralph
-
-# View logs
-sudo journalctl -u remote-ralph -f
+claude
 ```
 
-## Triggers
+## CLAUDE.md
 
-**File trigger** — Drop tasks in `tasks.json`:
-```json
-[{"id": "1", "prompt": "Fix the login bug", "status": "pending"}]
+Your project's CLAUDE.md tells Claude what to do. Example:
+
+```markdown
+# CLAUDE.md
+
+You are maintaining this project. When triggered:
+1. Check for open issues labeled "ready"
+2. Pick the highest priority one
+3. Implement it
+4. Run tests
+5. Commit and push
 ```
 
-**Webhook trigger** — POST to `localhost:3000/task`:
+## Triggering
+
+Once set up, trigger however you want:
+
+**Cron** — Run every hour:
 ```bash
-curl -X POST localhost:3000/task -d '{"prompt": "Add dark mode"}'
+0 * * * * cd /home/you/project && claude -p "check for work"
 ```
 
-**GitHub trigger** — Label issues `claude-ready`, Claude handles them.
+**Webhook** — Call from external system:
+```bash
+curl -X POST your-server/trigger
+```
 
-## Why subscription instead of API?
+**SSH** — Run manually or from another Claude:
+```bash
+ssh server "cd project && claude -p 'fix the bug'"
+```
 
-Cost. A heavy day of Claude Code via API can cost $50-100. That's $1,500-3,000/month. Claude Max is $200/month flat for the same thing.
+**Systemd** — Run as a service that watches for tasks.
+
+The trigger mechanism is up to you. This repo is just the setup guide.
+
+## Cost
+
+Claude Max: $200/month flat.
+Equivalent API usage: $1,500-3,000/month.
 
 ## License
 
