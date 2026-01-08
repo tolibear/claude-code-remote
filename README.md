@@ -1,4 +1,4 @@
-# remote-ralph
+# claude-code-remote
 
 Run Claude Code on a remote server using your subscription (not API).
 
@@ -14,7 +14,7 @@ With Max subscription, you get the same Opus 4.5 for $200/month. This repo helps
 
 ## Example: Evolving Site
 
-[Evolving Site](https://github.com/tolibear/Ralph) is a website where users submit feature suggestions and vote on them. Claude (nicknamed "Ralph") runs on a VPS and implements the top-voted suggestions automatically.
+[Evolving Site](https://github.com/tolibear/Ralph) is a website where users submit feature suggestions and vote on them. A remote Claude runs on a VPS and implements the top-voted suggestions automatically.
 
 Users vote → Claude implements → Site deploys.
 
@@ -94,7 +94,7 @@ Your project's `CLAUDE.md` defines what Claude does when triggered. See the incl
 ## Files
 
 ```
-remote-ralph/
+claude-code-remote/
 ├── README.md        # This file
 ├── CLAUDE.md        # Template for remote Claude behavior
 ├── remote-logs.sh   # Stream logs from remote (configure after setup)
