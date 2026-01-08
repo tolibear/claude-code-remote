@@ -1,180 +1,69 @@
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                                                                 │
-│   HEADLESS CLAUDE SUBSCRIPTION                                  │
-│                                                                 │
-│   Run Claude Code on your VPS using your subscription.          │
-│   Not the API.                                                  │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
+# headless-claude-subscription
 
-## The Problem
+Run Claude Code on your VPS using your subscription — not the API.
 
-```
-$ claude-code --api-key
-  → Complex feature implementation
-  → 45 minutes later...
-  → Invoice: $47.82
+## Why?
 
-$ claude-code --api-key
-  → "Fix this bug"
-  → 30 seconds later...
-  → Invoice: $10.00
-```
+Opus 4.5 API pricing:
+- $15 per million input tokens
+- $75 per million output tokens
 
-API pricing adds up fast. Developers report $20-100/day for moderate usage.
-Heavy Opus users hit $1000+ days.
+A heavy coding day can burn through $50-100 in API costs. That's **$1,500-3,000/month**.
 
-## The Solution
+Claude Max subscription: **$200/month flat**. Same Opus 4.5, unlimited anxiety-free usage.
 
-```
-$ claude-code --subscription
-  → Same Claude Code
-  → Same capabilities
-  → Fixed monthly cost
-  → No token anxiety
-```
+This repo lets you run Claude Code headlessly on a VPS using that subscription.
 
-**Claude Max ($200/mo) gives you what would cost $1000+ in API.**
-
-Users report getting "thousands of dollars worth of API usage" monthly.
-
-## Cost Comparison
-
-```
-┌────────────────────┬──────────┬─────────────────────────┐
-│ Method             │ Cost/mo  │ Usage                   │
-├────────────────────┼──────────┼─────────────────────────┤
-│ API (Sonnet)       │ $100-200 │ Average dev usage       │
-│ API (Opus heavy)   │ $500+    │ Complex projects        │
-│ API (Opus intense) │ $1000+   │ Architecture work       │
-├────────────────────┼──────────┼─────────────────────────┤
-│ Max Subscription   │ $200     │ 20x Pro limits          │
-│ Max Subscription   │ $100     │ 5x Pro limits           │
-│ Pro Subscription   │ $20      │ Base limits             │
-└────────────────────┴──────────┴─────────────────────────┘
-```
-
-This repo runs Claude Code headlessly on a VPS, using your subscription.
-It works while you sleep.
-
-## Quick Start
+## Setup
 
 ```bash
-# On your VPS
 git clone https://github.com/tolibear/headless-claude-subscription.git
 cd headless-claude-subscription
-
-# Run setup (detects Claude Code, guides auth, installs deps)
 ./setup.sh
-
-# Start with a trigger
-npm start triggers/file-trigger.ts      # Watch tasks.json
-npm start triggers/webhook-trigger.ts   # HTTP endpoint
-npm start triggers/github-issues-trigger.ts  # Auto-fix labeled issues
 ```
 
-## How It Works
+The setup script will:
+- Check if Claude Code is installed
+- Guide you through authentication
+- Configure it as a background service
 
-```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Trigger   │────▶│   Runner    │────▶│ Claude Code │
-│             │     │             │     │             │
-│ - file      │     │ - spawns    │     │ - implements│
-│ - webhook   │     │ - streams   │     │ - commits   │
-│ - github    │     │ - handles   │     │ - pushes    │
-│ - custom    │     │   results   │     │             │
-└─────────────┘     └─────────────┘     └─────────────┘
-                           │
-                           ▼
-                    Your subscription
-                    (not API tokens)
+## Usage
+
+Pick a trigger and run:
+
+```bash
+npm start triggers/file-trigger.ts          # reads tasks from tasks.json
+npm start triggers/webhook-trigger.ts       # HTTP endpoint for external systems
+npm start triggers/github-issues-trigger.ts # auto-fixes labeled GitHub issues
 ```
 
 ## Triggers
 
-### File Trigger (simplest)
-
-```bash
-# tasks.json
-[
-  {"id": "1", "prompt": "Fix the login bug", "status": "pending"},
-  {"id": "2", "prompt": "Add dark mode", "status": "pending"}
-]
-
-$ npm start triggers/file-trigger.ts
+**File trigger** — Add tasks to `tasks.json`, Claude picks them up:
+```json
+[{"id": "1", "prompt": "Fix the login bug", "status": "pending"}]
 ```
 
-### Webhook Trigger
-
+**Webhook trigger** — POST tasks to an HTTP endpoint:
 ```bash
-$ WEBHOOK_PORT=3000 npm start triggers/webhook-trigger.ts
-
-# Submit tasks via HTTP
-$ curl -X POST localhost:3000/task \
-    -H "Content-Type: application/json" \
-    -d '{"prompt": "Add logout button"}'
+curl -X POST localhost:3000/task -d '{"prompt": "Add dark mode"}'
 ```
 
-### GitHub Issues Trigger
+**GitHub Issues trigger** — Label issues `claude-ready`, Claude fixes them automatically.
+
+## Run as a service
 
 ```bash
-$ export GITHUB_TOKEN=ghp_xxx
-$ export GITHUB_REPO=you/repo
-$ export GITHUB_LABEL=claude-ready
-
-$ npm start triggers/github-issues-trigger.ts
-
-# Label an issue "claude-ready" → Claude fixes it → Comments results
-```
-
-## Run as Service
-
-```bash
-# Setup script offers systemd config, or manually:
 sudo systemctl enable headless-claude
 sudo systemctl start headless-claude
-sudo journalctl -u headless-claude -f
-```
-
-## Config
-
-```bash
-# .env
-PROJECT_DIR=/home/you/project
-CLAUDE_TIMEOUT_MINUTES=30
-POLL_INTERVAL_MS=10000
 ```
 
 ## Safety
 
-- Git is your safety net (every change committed)
-- CLAUDE.md defines guardrails (see examples/)
-- 30min timeout per task (configurable)
-- Secrets not passed to subprocess
-
-## Use Cases
-
-```
-→ Issue triage bot      Label issues, Claude fixes them
-→ PR reviewer           Auto-review on new PRs
-→ Scheduled maintenance Linting, deps, cleanup
-→ Webhook responder     React to external events
-→ Feature implementer   Users vote, Claude builds
-```
-
-See [Evolving Site](https://github.com/tolibear/evolving-site) for a full example.
-
-## Terms of Service
-
-Your responsibility to comply with Anthropic's TOS.
-We recommend human-triggered workflows over fully automated.
+- Every change is committed to git (easy rollback)
+- Define guardrails in your project's CLAUDE.md
+- 30 minute timeout per task
 
 ## License
 
 MIT
-
----
-
-Sources: [Anthropic Docs](https://code.claude.com/docs/en/costs), [User Reports](https://userjot.com/blog/claude-code-pricing-200-dollar-plan-worth-it), [Cost Analysis](https://www.aiengineering.report/p/the-hidden-costs-of-claude-code-token)
