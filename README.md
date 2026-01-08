@@ -14,7 +14,7 @@ With Max subscription, you get the same Opus 4.5 for $200/month. This repo helps
 
 ## Example: Evolving Site
 
-[Evolving Site](https://github.com/tolibear/Ralph) is a website where users submit feature suggestions and vote on them. A remote Claude runs on a VPS and implements the top-voted suggestions automatically.
+[Evolving Site](https://evolving-site.vercel.app/) is a website where users submit feature suggestions and vote on them. A remote Claude runs on a VPS and implements the top-voted suggestions automatically.
 
 Users vote → Claude implements → Site deploys.
 
