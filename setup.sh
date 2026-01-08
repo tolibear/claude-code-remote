@@ -214,7 +214,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     esac
 
     # Create systemd service file
-    SERVICE_FILE="/etc/systemd/system/headless-claude.service"
+    SERVICE_FILE="/etc/systemd/system/remote-ralph.service"
 
     sudo tee $SERVICE_FILE > /dev/null << EOF
 [Unit]
@@ -247,11 +247,11 @@ EOF
     echo -e "${GREEN}Systemd service created!${NC}"
     echo ""
     echo "Commands:"
-    echo "  sudo systemctl start headless-claude    # Start the service"
-    echo "  sudo systemctl stop headless-claude     # Stop the service"
-    echo "  sudo systemctl enable headless-claude   # Start on boot"
-    echo "  sudo systemctl status headless-claude   # Check status"
-    echo "  sudo journalctl -u headless-claude -f   # View logs"
+    echo "  sudo systemctl start remote-ralph    # Start the service"
+    echo "  sudo systemctl stop remote-ralph     # Stop the service"
+    echo "  sudo systemctl enable remote-ralph   # Start on boot"
+    echo "  sudo systemctl status remote-ralph   # Check status"
+    echo "  sudo journalctl -u remote-ralph -f   # View logs"
 fi
 
 # Done!
@@ -265,5 +265,5 @@ echo "  1. Edit .env to configure your settings"
 echo "  2. Test with: npm start triggers/file-trigger.ts"
 echo "  3. Add tasks to tasks.json (or use webhook/GitHub trigger)"
 echo ""
-echo "Documentation: https://github.com/your-username/headless-claude-subscription"
+echo "Documentation: https://github.com/your-username/remote-ralph-subscription"
 echo ""
