@@ -12,80 +12,98 @@ Opus 4.5 API pricing is $15/million input tokens and $75/million output tokens. 
 
 With Max subscription, you get the same Opus 4.5 for $200/month. This repo helps you run it on a server so it works while you sleep.
 
+## Example: Evolving Site
+
+[Evolving Site](https://github.com/tolibear/Ralph) is a website where users submit feature suggestions and vote on them. Claude (nicknamed "Ralph") runs on a VPS and implements the top-voted suggestions automatically.
+
+Users vote → Claude implements → Site deploys.
+
+That's this repo in action.
+
 ## What You Do
 
-1. Set up a VPS (AWS, Hostinger, DigitalOcean - ask Claude for help)
-2. Give Claude the prompt below
-3. Click one auth link
-4. Done
+1. Give Claude the prompt below
+2. Click one auth link when asked
+3. Done
 
 ## The Prompt
 
 Copy this and give it to your local Claude Code:
 
 ```
-I need you to set up Claude Code on my remote server so it can run autonomously.
+I want to set up Claude Code on a remote server so it can run while I'm away.
 
-Server details:
-- Host: [YOUR_SERVER_IP]
-- User: [YOUR_USERNAME]
-- SSH key: [PATH_TO_YOUR_KEY or "password auth"]
+I'm a beginner - walk me through everything:
 
-Steps:
-1. SSH into the server
-2. Install Node.js if not present
-3. Install Claude Code globally (npm install -g @anthropic-ai/claude-code)
-4. Run `claude` to start authentication
-5. Give me the auth URL it outputs - I'll click it and give you the code
-6. Enter the code to complete auth
-7. Verify it's working with a simple test
+1. FIRST, help me get a VPS if I don't have one:
+   - Recommend the cheapest option (Hostinger, DigitalOcean, AWS)
+   - Walk me through creating an account and server
+   - Help me set up SSH access
 
-Let me know when you need the auth code from me.
+2. THEN, set up Claude Code on the server:
+   - SSH into the server
+   - Install Node.js if needed
+   - Install Claude Code (npm install -g @anthropic-ai/claude-code)
+   - Run `claude` to start auth
+   - Give me the auth URL - I'll click it and give you the code back
+   - Complete the authentication
+
+3. FINALLY, update remote-logs.sh with my server details so I can stream logs locally.
+
+Ask me questions as we go. I'll tell you my server details once I have them, or help me get them.
 ```
-
-Claude will handle everything. When it gives you an auth URL, open it in your browser, log in, and paste the code back.
 
 ## After Setup
 
-Your remote server now has an authenticated Claude Code. Use it however you want:
+### Stream Logs
 
-**Run directly:**
 ```bash
-ssh server "cd /path/to/project && claude -p 'fix the bug in auth.ts'"
+./remote-logs.sh
 ```
 
-**Cron job:**
+(Claude will configure this during setup)
+
+### Run Tasks
+
+**Manually:**
 ```bash
-0 * * * * cd /home/you/project && claude -p "check for issues and fix them"
+ssh server "cd /project && claude -p 'fix the bug'"
 ```
 
-**From another Claude:**
-Your local Claude can SSH in and tell remote Claude what to do.
+**From local Claude:**
+```
+SSH into my server and tell Claude to fix the login bug.
+```
+
+## Triggers
+
+See the `triggers/` folder for prompts to set up:
+
+- **cron.md** — Run Claude on a schedule
+- **webhook.md** — HTTP endpoint that triggers Claude
+- **github-issues.md** — Auto-fix issues with a label
+- **file-watch.md** — Watch a tasks.json file
+- **ssh.md** — Run on demand via SSH
+
+Each file has a prompt you can give Claude to set it up.
 
 ## CLAUDE.md
 
-Put a CLAUDE.md in your project to define what Claude should do when triggered:
+Your project's `CLAUDE.md` defines what Claude does when triggered. See the included template.
 
-```markdown
-# CLAUDE.md
-
-When you run, do the following:
-1. Pull latest changes
-2. Check for GitHub issues labeled "ready"
-3. Pick the highest priority one
-4. Implement it
-5. Run tests
-6. Commit and push
-7. Comment on the issue with what you did
-```
-
-## Need Help Setting Up a VPS?
-
-Give Claude this prompt:
+## Files
 
 ```
-Help me set up a VPS for running Claude Code. I want the cheapest option that works.
-Walk me through creating an account and server on [Hostinger/AWS/DigitalOcean].
+remote-ralph/
+├── README.md        # This file
+├── CLAUDE.md        # Template for remote Claude behavior
+├── remote-logs.sh   # Stream logs from remote (configure after setup)
+└── triggers/        # Prompts for different trigger types
+    ├── cron.md
+    ├── webhook.md
+    ├── github-issues.md
+    ├── file-watch.md
+    └── ssh.md
 ```
 
 ## License
