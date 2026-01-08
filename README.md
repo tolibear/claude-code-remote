@@ -1,4 +1,4 @@
-# Trigger remote Claude Code (subscription, not API)
+# Claude Code Remote (not API) + Triggers 
 
 Run Claude Code on a remote server using your subscription (not API).
 
