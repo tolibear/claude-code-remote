@@ -4,101 +4,89 @@ Run Claude Code on a remote server using your subscription (not API).
 
 ## Why
 
-Your Claude subscription works while your laptop is open. This makes it work while you sleep.
+**Cost:**
+- Claude Max (Opus 4.5): **$200/month** flat
+- Equivalent API usage: **$1,500-3,000/month**
 
-## How It Works
+Opus 4.5 API pricing is $15/million input tokens and $75/million output tokens. A heavy coding day burns $50-100. That's $1,500-3,000/month if you're using Claude Code daily.
 
-Your local Claude Code helps set up Claude Code on a remote server. Once authenticated, the remote Claude can run tasks autonomously - triggered by cron, webhooks, SSH, or whatever you want.
+With Max subscription, you get the same Opus 4.5 for $200/month. This repo helps you run it on a server so it works while you sleep.
 
-## Setup (with Local Claude)
+## What You Do
 
-Have your local Claude Code run these steps on your VPS:
+1. Set up a VPS (AWS, Hostinger, DigitalOcean - ask Claude for help)
+2. Give Claude the prompt below
+3. Click one auth link
+4. Done
 
-### 1. SSH into your server
+## The Prompt
 
-```bash
-ssh user@your-server
+Copy this and give it to your local Claude Code:
+
+```
+I need you to set up Claude Code on my remote server so it can run autonomously.
+
+Server details:
+- Host: [YOUR_SERVER_IP]
+- User: [YOUR_USERNAME]
+- SSH key: [PATH_TO_YOUR_KEY or "password auth"]
+
+Steps:
+1. SSH into the server
+2. Install Node.js if not present
+3. Install Claude Code globally (npm install -g @anthropic-ai/claude-code)
+4. Run `claude` to start authentication
+5. Give me the auth URL it outputs - I'll click it and give you the code
+6. Enter the code to complete auth
+7. Verify it's working with a simple test
+
+Let me know when you need the auth code from me.
 ```
 
-### 2. Install Claude Code
+Claude will handle everything. When it gives you an auth URL, open it in your browser, log in, and paste the code back.
 
+## After Setup
+
+Your remote server now has an authenticated Claude Code. Use it however you want:
+
+**Run directly:**
 ```bash
-npm install -g @anthropic-ai/claude-code
+ssh server "cd /path/to/project && claude -p 'fix the bug in auth.ts'"
 ```
 
-### 3. Authenticate
-
-This is the handoff. Run `claude` on the server:
-
+**Cron job:**
 ```bash
-claude
+0 * * * * cd /home/you/project && claude -p "check for issues and fix them"
 ```
 
-It outputs an auth URL. Copy it, open in your browser, log in, get a code, paste it back into the server terminal.
-
-Session lasts weeks.
-
-### 4. Clone your project
-
-```bash
-git clone https://github.com/you/your-project.git
-cd your-project
-```
-
-### 5. Run Claude
-
-```bash
-claude -p "your task here"
-```
-
-Or with a CLAUDE.md that defines what it should do:
-
-```bash
-claude
-```
+**From another Claude:**
+Your local Claude can SSH in and tell remote Claude what to do.
 
 ## CLAUDE.md
 
-Your project's CLAUDE.md tells Claude what to do. Example:
+Put a CLAUDE.md in your project to define what Claude should do when triggered:
 
 ```markdown
 # CLAUDE.md
 
-You are maintaining this project. When triggered:
-1. Check for open issues labeled "ready"
-2. Pick the highest priority one
-3. Implement it
-4. Run tests
-5. Commit and push
+When you run, do the following:
+1. Pull latest changes
+2. Check for GitHub issues labeled "ready"
+3. Pick the highest priority one
+4. Implement it
+5. Run tests
+6. Commit and push
+7. Comment on the issue with what you did
 ```
 
-## Triggering
+## Need Help Setting Up a VPS?
 
-Once set up, trigger however you want:
+Give Claude this prompt:
 
-**Cron** — Run every hour:
-```bash
-0 * * * * cd /home/you/project && claude -p "check for work"
 ```
-
-**Webhook** — Call from external system:
-```bash
-curl -X POST your-server/trigger
+Help me set up a VPS for running Claude Code. I want the cheapest option that works.
+Walk me through creating an account and server on [Hostinger/AWS/DigitalOcean].
 ```
-
-**SSH** — Run manually or from another Claude:
-```bash
-ssh server "cd project && claude -p 'fix the bug'"
-```
-
-**Systemd** — Run as a service that watches for tasks.
-
-The trigger mechanism is up to you. This repo is just the setup guide.
-
-## Cost
-
-Claude Max: $200/month flat.
-Equivalent API usage: $1,500-3,000/month.
 
 ## License
 
