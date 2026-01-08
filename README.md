@@ -33,7 +33,7 @@ Claude Code CLI uses your subscription credits, not API tokens. Running it headl
 
 ```bash
 # 1. Clone this repo to your VPS
-git clone https://github.com/YOUR_USERNAME/headless-claude-subscription.git
+git clone https://github.com/tolibear/headless-claude-subscription.git
 cd headless-claude-subscription
 
 # 2. Run the setup script
@@ -114,7 +114,7 @@ Automatically processes GitHub issues with a specific label.
 ```bash
 # Set your GitHub token and repo
 export GITHUB_TOKEN=ghp_xxxxxxxxxxxx
-export GITHUB_REPO=your-username/your-repo
+export GITHUB_REPO=tolibear/your-repo
 export GITHUB_LABEL=claude-ready
 
 npm start triggers/github-issues-trigger.ts
@@ -195,8 +195,8 @@ After=network.target
 
 [Service]
 Type=simple
-User=your-username
-WorkingDirectory=/home/your-username/headless-claude-subscription
+User=tolibear
+WorkingDirectory=/home/tolibear/headless-claude-subscription
 ExecStart=/usr/bin/npx tsx src/index.ts triggers/file-trigger.ts
 Restart=on-failure
 RestartSec=10
@@ -231,7 +231,7 @@ Key safety features:
 - **PR Reviewer** — Trigger on new PRs, get AI code review
 - **Scheduled Maintenance** — Run linting, dependency updates, etc.
 - **Webhook Responder** — React to Stripe webhooks, form submissions
-- **Feature Suggestion Implementer** — Users vote, Claude builds (see [Evolving Site](https://github.com/your-username/evolving-site))
+- **Feature Suggestion Implementer** — Users vote, Claude builds (see [Evolving Site](https://github.com/tolibear/evolving-site))
 
 ## Terms of Service
 
@@ -259,7 +259,7 @@ Ensure your VPS has SSH keys configured for your Git remote.
 
 ## Examples
 
-See [Evolving Site](https://github.com/your-username/evolving-site) for a full implementation where users submit feature suggestions, vote on them, and Claude implements the winners.
+See [Evolving Site](https://github.com/tolibear/evolving-site) for a full implementation where users submit feature suggestions, vote on them, and Claude implements the winners.
 
 ## Contributing
 
